@@ -1,54 +1,44 @@
-// Initial values
-const API_KEY = '3d1368c795859acd0256035cb614f865';
-
-const url = "https://api.themoviedb.org/3/search/movie?api_key=3d1368c795859acd0256035cb614f865"
-
-const IMAGE_URL = "https://image.tmdb.org/t/p/w500"
-
 const buttonElement = document.querySelector('#search');
 const inputElement = document.querySelector('#inputValue');
 const movieSearchable = document.querySelector('#movies-searchable');
-const imgElement = document.querySelector('img');
+const movieContainer = document.querySelector('#movies-container');
 
-function generateUrl(path){
-    const url = `https://api.themoviedb.org/3${path}?api_key=3d1368c795859acd0256035cb614f865`;
-    return url;
-}
-
-function requestMovies(url, onComplete, onError){
-    fetch(url)
-        .then((res) => res.json())
-        .then(onComplete)
-        .catch(onError);
-}
 
 function movieSection(movies){
-     return movies
-        .filter((movie) => movie.poster_path != null)
-        .map((movie) => {            
-            return `<img 
-            src=${IMAGE_URL + movie.poster_path} 
-            data-movie-id=${movie.id}
-            />`;
-    })
+    const section = document.createElement('section');
+    section.classList = 'section';
+
+    movies.map((movie) => {
+            if(movie.poster_path) {
+                const img = document.createElement('img');
+                img.src = IMAGE_URL + movie.poster_path;
+                img.setAttribute('data-movie-id', movie.id);
+
+                section.appendChild(img);
+            }
+        })
+    return section;
 }
 
-function createMovieContainer(movies){
+function createMovieContainer(movies, title = ''){
     
     const movieElement = document.createElement('div');
     movieElement.setAttribute('class', 'movie');
 
-    const movieTemplate = `
-    <section class="section">
-        ${movieSection(movies)}
-    </section>
+    const header = document.createElement('h2');
+    header.innerHTML = title;
 
-    <div class="content ">
-        <p id="content-close">X</p>
-    </div>
-    `;
+    const content = document.createElement('div');
+    content.classList = 'content';
 
-    movieElement.innerHTML = movieTemplate;
+    const contentClose = `<p id="content-close">X</p>`;
+    content.innerHTML = contentClose;
+
+    const section = movieSection(movies);
+
+    movieElement.appendChild(header);
+    movieElement.appendChild(section);
+    movieElement.appendChild(content);
     return movieElement;
 }
 
@@ -58,22 +48,23 @@ function renderSearchMovies(data) {
     const movies = data.results;
     const movieBlock = createMovieContainer(movies);
     movieSearchable.appendChild(movieBlock);
-    console.log("Data:", data);
 }
 
-function searchMovie()
+function renderMovies(data) {
+    // data results []
+    const movies = data.results;
+    const movieBlock = createMovieContainer(movies, this.title);
+    movieContainer.appendChild(movieBlock);
+}
+
+function handleError(error){
+    console.log('Error: ', error);
+}
 
 buttonElement.onclick = function(event){
     event.preventDefault();
     const value = inputElement.value; 
-    const path = '/search/movie';
-    const newUrl = generateUrl(path) + '&query=' + value;
-    fetch(newUrl)
-        .then((res) => res.json())
-        .then(renderSearchMovies)
-        .catch((err) => {
-            console.log("Error:", err);
-        })
+    searchMovie(value);
 
     inputElement.value = '';
     console.log("Value:", value);
@@ -134,3 +125,10 @@ document.onclick = function(event){
     }
 }
 
+searchMovie('Narnia');
+
+getUpcomingMovies();
+
+getTopRatedMovies();
+
+getPopularMovies();
