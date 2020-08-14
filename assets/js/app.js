@@ -15,6 +15,13 @@ function generateUrl(path){
     return url;
 }
 
+function requestMovies(url, onComplete, onError){
+    fetch(url)
+        .then((res) => res.json())
+        .then(onComplete)
+        .catch(onError);
+}
+
 function movieSection(movies){
      return movies
         .filter((movie) => movie.poster_path != null)
@@ -54,6 +61,8 @@ function renderSearchMovies(data) {
     console.log("Data:", data);
 }
 
+function searchMovie()
+
 buttonElement.onclick = function(event){
     event.preventDefault();
     const value = inputElement.value; 
@@ -70,12 +79,40 @@ buttonElement.onclick = function(event){
     console.log("Value:", value);
 }
 
+function createIframe(video) {
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://youtube.com/embed/${video.key}`;
+    iframe.width = 360;
+    iframe.height = 315;
+    iframe.allowFullscreen = true;
+
+    return iframe;
+}
+
+function createVideoTemplate(data, content){
+    // TODO
+    // display movie videos
+    content.innerHTML = '<p id="content-close">X</p>';
+    console.log("Videos: ", data);
+    const videos = data.results;
+    const length = videos.length > 4 ? 4 : videos.length;
+    const iframeContainer = document.createElement('div');
+
+    for(let i = 0; i < length; i++){
+        const video  = videos[i];
+        const iframe = createIframe(video);
+        iframeContainer.appendChild(iframe);
+        content.appendChild(iframeContainer);
+    }
+}
+
 // Event Delegation
 document.onclick = function(event){
     const target = event.target;
+
     if(target.tagName.toLowerCase() === 'img'){
         const movieId = target.dataset.movieId;
-        console.log(movieId)
+        console.log('Movie Id: ', movieId);
         const section = event.target.parentElement; //section
         const content = section.nextElementSibling; //content
         content.classList.add('content-display');
@@ -85,14 +122,10 @@ document.onclick = function(event){
         // fetch movie videos
         fetch(url)
         .then((res) => res.json())
-        .then((data) => {
-            // TODO
-            // display movie videos
-            console.log("Videos: ", data);
-        })
+        .then((data) => createVideoTemplate(data, content))
         .catch((err) => {
             console.log("Error:", err);
-        })
+        });
     }
     
     if(target.id === 'content-close') {
